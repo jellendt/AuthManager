@@ -17,11 +17,8 @@ namespace AuthManager.Entities
         public required string EMail { get; set; }
         public RoleEnum Role { get; set; }
         [NotMapped]
-        public string JwtToken { get; set; }
-
-        [JsonIgnore]
+        public string? JwtToken { get; set; }
         public List<RefreshToken> RefreshTokens { get; set; } = [];
-        [JsonIgnore]
         public RefreshToken? ActiveRefreshToken
         {
             get

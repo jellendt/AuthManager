@@ -1,6 +1,8 @@
-﻿using AuthManager.Contexts;
+﻿using AuthManager.Automapper;
+using AuthManager.Contexts;
 using AuthManager.Services.AuthenticationService;
 using AuthManager.Services.UserService;
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -32,12 +34,25 @@ namespace AuthManager
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IJwtService, JwtService>();
+
+            services.AddControllers();
+            //.AddJsonOptions(options => 
+            //    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve
+            //);
+
+            services.AddEndpointsApiExplorer();
+            services.AddSwaggerGen();
             return services;
         }
 
         public static IServiceCollection AddMapper(this IServiceCollection services)
         {
-            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            MapperConfiguration mapperConfig = new(mc =>
+                mc.AddProfile(new MappingProfile())
+            );
+
+            IMapper mapper = mapperConfig.CreateMapper();
+            services.AddSingleton(mapper);
 
             return services;
         }
@@ -62,35 +77,27 @@ namespace AuthManager
                     ValidAudience = configuration["Jwt:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
                 };
-                options.Events = new JwtBearerEvents
-                {
-                    OnMessageReceived = context =>
-                    {
-                        ILogger<Program> logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-                        if (context.Request.Cookies.TryGetValue("refreshToken", out string? accessToken))
-                        {
-                            context.Token = accessToken;
-                            logger.LogInformation("Token extracted from cookie: {Token}", accessToken);
-                        }
-                        else
-                        {
-                            logger.LogWarning("No access token found in cookies.");
-                        }
-                        return Task.CompletedTask;
-                    },
-                    OnAuthenticationFailed = context =>
-                    {
-                        ILogger<Program> logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-                        logger.LogError("Authentication failed: {Exception}", context.Exception);
-                        return Task.CompletedTask;
-                    },
-                    OnTokenValidated = context =>
-                    {
-                        ILogger<Program> logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-                        logger.LogInformation("Token validated successfully.");
-                        return Task.CompletedTask;
-                    }
-                };
+                //options.Events = new JwtBearerEvents
+                //{
+                //    OnMessageReceived = context =>
+                //    {
+                //        ILogger<Program> logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                //        logger.LogInformation("Token extracted from cookie: {Token}", context.Token);
+                //        return Task.CompletedTask;
+                //    },
+                //    OnAuthenticationFailed = context =>
+                //    {
+                //        ILogger<Program> logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                //        logger.LogError("Authentication failed: {Exception}", context.Exception);
+                //        return Task.CompletedTask;
+                //    },
+                //    OnTokenValidated = context =>
+                //    {
+                //        ILogger<Program> logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                //        logger.LogInformation("Token validated successfully.");
+                //        return Task.CompletedTask;
+                //    }
+                //};
 
             });
 

@@ -1,5 +1,5 @@
 ﻿using AuthManager.Entities;
-using AuthManager.Models;
+using AuthManager.Models.Requests;
 
 namespace AuthManager.Services.AuthenticationService
 {
@@ -7,5 +7,6 @@ namespace AuthManager.Services.AuthenticationService
     {
         Task<User> Register(RegisterRequest registerRequest);
         Task<User?> Login(LoginRequest loginRequest);
+        Task<(string jwtToken, RefreshToken refreshToken)?> Refresh(string userRefreshToken);
     }
 }

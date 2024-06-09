@@ -1,7 +1,9 @@
 ﻿using AuthManager.Entities;
-using AuthManager.Models;
+using AuthManager.Models.Requests;
+using AuthManager.Models.Responses;
 using AuthManager.Services.AuthenticationService;
 using AuthManager.Services.UserService;
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,12 +14,12 @@ namespace AuthManager.Controllers
     [ApiController]
     [Route("authentication")]
     public class AuthenticationController(
-            [FromServices] IAuthenticationService authenticationService,
-            [FromServices] IUserService userService
+        [FromServices] IAuthenticationService authenticationService,
+        [FromServices] IMapper mapper
             ) : Controller
     {
         private readonly IAuthenticationService _authenticationService = authenticationService;
-        private readonly IUserService _userService = userService;
+        private readonly IMapper _mapper = mapper;
 
         [HttpPut("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
@@ -25,18 +27,43 @@ namespace AuthManager.Controllers
             User user = await this._authenticationService.Register(registerRequest);
             if (user.ActiveRefreshToken == null)
                 return this.Unauthorized();
+
             this.SetRefreshToken(user.ActiveRefreshToken);
-            return this.Ok(user);
+
+            AuthenticateResponse authenticateResponse = this._mapper.Map<AuthenticateResponse>(user);
+            return this.Ok(authenticateResponse);
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
         {
-            //string jwtToken = await this._authenticationService.Login(loginRequest);
-            //if(string.IsNullOrEmpty(jwtToken))
-            //    return this.Unauthorized();
-            //return this.Ok();
-            return this.Ok();
+
+            User? user = await this._authenticationService.Login(loginRequest);
+            if (user == null || user.ActiveRefreshToken == null)
+                return this.Unauthorized();
+
+            this.SetRefreshToken(user.ActiveRefreshToken);
+
+            AuthenticateResponse authenticateResponse = this._mapper.Map<AuthenticateResponse>(user);
+            return this.Ok(authenticateResponse);
+        }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh()
+        {
+            if(this.Request.Cookies.TryGetValue("refreshToken", out string? refreshToken))
+            {
+                (string jwtToken, RefreshToken refreshToken)? tokens = await this._authenticationService.Refresh(refreshToken);
+                if(tokens == null)
+                    return this.Unauthorized();
+                this.SetRefreshToken(tokens.Value.refreshToken);
+
+                return this.Ok(tokens.Value.jwtToken);
+            }
+            else
+            {
+                return this.Unauthorized();
+            }
         }
 
         [HttpGet("test")]
@@ -49,7 +76,7 @@ namespace AuthManager.Controllers
 
         private void SetRefreshToken(RefreshToken refreshToken)
         {
-            this.Response.Cookies.Append("accessToken", refreshToken.Token,
+            this.Response.Cookies.Append("refreshToken", refreshToken.Token,
                         new CookieOptions
                         {
                             Expires = DateTimeOffset.UtcNow.Add(refreshToken.Expires - DateTime.Now),

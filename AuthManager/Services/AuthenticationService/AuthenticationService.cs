@@ -1,6 +1,6 @@
 ﻿using AuthManager.Contexts;
 using AuthManager.Entities;
-using AuthManager.Models;
+using AuthManager.Models.Requests;
 using AuthManager.Services.UserService;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -43,31 +43,41 @@ namespace AuthManager.Services.AuthenticationService
 
         public async Task<User?> Login(LoginRequest loginRequest)
         {
-            User? user = await this._userService.GetByEmail(loginRequest.Username);
+            User? user = await this._userService.GetByEmail(loginRequest.EMail);
             if (user == null)
                 return null;
             if(PasswordHasher.VerifyPassword(loginRequest.Password, user.PasswordHash, user.Salt))
             {
                 user.RefreshTokens.Add(GenerateRefreshToken());
                 await this._dbAuthContext.SaveChangesAsync();
+                user.JwtToken = this._jwtService.GenerateJwtToken(user);
                 return user;
             }
 
             return null;
         }
 
-        public async Task<string?> Refresh(string userRefreshToken)
+        public async Task<(string jwtToken, RefreshToken refreshToken)?> Refresh(string userRefreshToken)
         {
             RefreshToken? oldRefreshToken = await this._dbAuthContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token.Equals(userRefreshToken) && !rt.IsExpired);
 
             if (oldRefreshToken == null)
                 return null;
 
+            User? user = await this._dbAuthContext.Users.FirstOrDefaultAsync(u => u.Id == oldRefreshToken.UserId);
+
+            if (user == null)
+                return null;
+
+            string jwtToken = this._jwtService.GenerateJwtToken(user);
+
             RefreshToken newRefreshToken = GenerateRefreshToken();
 
             oldRefreshToken.ReplacedByToken = newRefreshToken.Id;
 
-            return newRefreshToken.Token;
+            await this._dbAuthContext.SaveChangesAsync();
+
+            return (jwtToken, newRefreshToken);
 
         }
 

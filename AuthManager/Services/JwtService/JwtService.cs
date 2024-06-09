@@ -32,7 +32,11 @@ namespace AuthManager.Services.AuthenticationService
                     new Claim(JwtRegisteredClaimNames.Email, user.EMail),
                     new Claim("role", user.Role.ToString()) }),
                 Expires = DateTime.UtcNow.AddMinutes(15),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                Issuer = this._configuration["Jwt:Issuer"],
+                Audience = this._configuration["Jwt:Audience"]
+                //ValidIssuer = configuration["Jwt:Issuer"],
+                //ValidAudience = configuration["Jwt:Audience"],
             };
             SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);

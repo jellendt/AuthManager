@@ -1,4 +1,4 @@
-﻿namespace AuthManager.Models
+﻿namespace AuthManager.Models.Requests
 {
     public class RegisterRequest(string username, string password, string eMail)
     {
