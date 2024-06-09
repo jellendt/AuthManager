@@ -26,6 +26,11 @@ namespace AuthManager.Services.AuthenticationService
             if (!EMail().IsMatch(registerRequest.EMail))
                 throw new Exception("Bitte geb eine Valide E-Mail an!");
 
+            if((await this._userService.GetByEmail(registerRequest.EMail)) != null)
+                throw new Exception("Diese E-Mail wurde bereits verwendet!");
+
+            if ((await this._userService.GetByEmail(registerRequest.Username)) != null)
+                throw new Exception("Dieser Username wurde bereits verwendet!");
             (string hash, string salt) = PasswordHasher.HashPassword(registerRequest.Password);
             RefreshToken refreshToken = GenerateRefreshToken();
 
@@ -55,7 +60,15 @@ namespace AuthManager.Services.AuthenticationService
                 return null;
             if(PasswordHasher.VerifyPassword(loginRequest.Password, user.PasswordHash, user.Salt))
             {
-                user.RefreshTokens.Add(GenerateRefreshToken());
+                RefreshToken newRefreshToken = GenerateRefreshToken();
+                
+                foreach(RefreshToken refreshToken in user.RefreshTokens.Where(u => u.IsActive))
+                {
+                    refreshToken.ReplacedByToken = newRefreshToken.Id;
+                    refreshToken.Expires = DateTime.UtcNow;
+                    refreshToken.ReasonRevoked = "revoked by system";
+                }
+                user.RefreshTokens.Add(newRefreshToken);
                 await this._dbAuthContext.SaveChangesAsync();
                 user.JwtToken = this._jwtService.GenerateJwtToken(user);
                 return user;

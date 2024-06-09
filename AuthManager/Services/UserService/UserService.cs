@@ -12,12 +12,16 @@ namespace AuthManager.Services.UserService
         private readonly DbAuthContext _dbAuthContext = dbAuthContext;
         public async Task<User?> GetByGuid(Guid id)
         {
-            return await this._dbAuthContext.Users.FirstOrDefaultAsync(u => u.Id == id);
+            return await this._dbAuthContext.Users
+                .Include(u => u.RefreshTokens)
+                .FirstOrDefaultAsync(u => u.Id == id);
         }
 
         public async Task<User?> GetByEmail(string Email)
         {
-            return await this._dbAuthContext.Users.FirstOrDefaultAsync(u => u.EMail.Equals(Email));
+            return await this._dbAuthContext.Users
+                .Include(u => u.RefreshTokens)
+                .FirstOrDefaultAsync(u => u.EMail.Equals(Email));
         }
         public async Task<User> Add(User user)
         {

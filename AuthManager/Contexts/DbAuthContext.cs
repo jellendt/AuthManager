@@ -17,6 +17,14 @@ namespace AuthManager.Contexts
                 .WithOne()
                 .HasForeignKey(rt => rt.UserId);
 
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.EMail)
+                .IsUnique();
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
+
         }
     }
 }
