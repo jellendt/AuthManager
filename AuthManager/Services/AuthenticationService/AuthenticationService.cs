@@ -2,13 +2,15 @@
 using AuthManager.Entities;
 using AuthManager.Models.Requests;
 using AuthManager.Services.UserService;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 
 namespace AuthManager.Services.AuthenticationService
 {
-    public class AuthenticationService(
+    public partial class AuthenticationService(
         [FromServices] IUserService userService,
         [FromServices] IJwtService jwtService,
         [FromServices] DbAuthContext dbAuthContext
@@ -17,8 +19,13 @@ namespace AuthManager.Services.AuthenticationService
         private readonly IUserService _userService = userService;
         private readonly IJwtService _jwtService = jwtService;
         private readonly DbAuthContext _dbAuthContext = dbAuthContext;
+
         public async Task<User> Register(RegisterRequest registerRequest)
         {
+
+            if (!EMail().IsMatch(registerRequest.EMail))
+                throw new Exception("Bitte geb eine Valide E-Mail an!");
+
             (string hash, string salt) = PasswordHasher.HashPassword(registerRequest.Password);
             RefreshToken refreshToken = GenerateRefreshToken();
 
@@ -59,7 +66,7 @@ namespace AuthManager.Services.AuthenticationService
 
         public async Task<(string jwtToken, RefreshToken refreshToken)?> Refresh(string userRefreshToken)
         {
-            RefreshToken? oldRefreshToken = await this._dbAuthContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token.Equals(userRefreshToken) && !rt.IsExpired);
+            RefreshToken? oldRefreshToken = await this._dbAuthContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token.Equals(userRefreshToken) && rt.Revoked == null && DateTime.UtcNow < rt.Expires);
 
             if (oldRefreshToken == null)
                 return null;
@@ -70,10 +77,14 @@ namespace AuthManager.Services.AuthenticationService
                 return null;
 
             string jwtToken = this._jwtService.GenerateJwtToken(user);
-
             RefreshToken newRefreshToken = GenerateRefreshToken();
 
+            user.RefreshTokens.Add(newRefreshToken);
+            this._dbAuthContext.Add(newRefreshToken);
+
             oldRefreshToken.ReplacedByToken = newRefreshToken.Id;
+            oldRefreshToken.Revoked = DateTime.UtcNow;
+            oldRefreshToken.ReasonRevoked = "revoked by system";
 
             await this._dbAuthContext.SaveChangesAsync();
 
@@ -94,5 +105,8 @@ namespace AuthManager.Services.AuthenticationService
 
             return refreshToken;
         }
+
+        [GeneratedRegex(@"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")]
+        private static partial Regex EMail();
     }
 }

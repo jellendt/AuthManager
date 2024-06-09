@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -42,10 +43,10 @@ namespace AuthManager.Services.AuthenticationService
             return tokenHandler.WriteToken(token);
         }
 
-        public Guid? ValidateJwtToken(string token)
+        public Guid? GetGuidFromJwtToken(string token)
         {
             if (token == null)
-                return default;
+                return null;
 
             JwtSecurityTokenHandler tokenHandler = new();
             byte[] key = Encoding.ASCII.GetBytes(this._configuration["Jwt:Key"]);
@@ -70,10 +71,16 @@ namespace AuthManager.Services.AuthenticationService
             catch
             {
                 // return null if validation fails
-                return default;
+                return null;
             }
         }
-
-        
+        public Guid? GetGuidIdFromClaims(List<Claim> claims)
+        {
+            if (Guid.TryParse(claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value, out Guid userGuid))
+            {
+                return userGuid;
+            }
+            return null;
+        }
     }
 }

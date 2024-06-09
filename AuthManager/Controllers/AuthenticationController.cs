@@ -15,11 +15,13 @@ namespace AuthManager.Controllers
     [Route("authentication")]
     public class AuthenticationController(
         [FromServices] IAuthenticationService authenticationService,
-        [FromServices] IMapper mapper
+        [FromServices] IMapper mapper,
+        [FromServices] IJwtService jwtService
             ) : Controller
     {
         private readonly IAuthenticationService _authenticationService = authenticationService;
         private readonly IMapper _mapper = mapper;
+        private readonly IJwtService _jwtService = jwtService;
 
         [HttpPut("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
@@ -70,7 +72,9 @@ namespace AuthManager.Controllers
         [Authorize]
         public IActionResult Test()
         {
-            return this.Ok("Ja ist Ok");
+            Guid? userGuid = this._jwtService.GetGuidIdFromClaims(HttpContext.User.Claims.ToList());
+            //User user = _jwtService.GetGuidFromJwtToken()
+            return this.Ok(userGuid);
             //return this.Ok(this._authenticationService.Ver());
         }
 

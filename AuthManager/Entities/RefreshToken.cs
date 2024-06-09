@@ -19,8 +19,26 @@ namespace AuthManager.Entities
         public DateTime? Revoked { get; set; }
         public Guid ReplacedByToken { get; set; }
         public string? ReasonRevoked { get; set; }
-        public bool IsExpired => DateTime.UtcNow >= this.Expires;
-        public bool IsRevoked => this.Revoked != null;
-        public bool IsActive => !this.IsRevoked && !this.IsExpired;
+        public bool IsExpired 
+        {
+            get
+            {
+                return DateTime.UtcNow >= this.Expires;
+            }
+        }
+        public bool IsRevoked
+        {
+            get
+            {
+                return this.Revoked != null;
+            }
+        }
+        public bool IsActive
+        {
+            get
+            {
+                return !this.IsRevoked && !this.IsExpired;
+            }
+        }
     }
 }
