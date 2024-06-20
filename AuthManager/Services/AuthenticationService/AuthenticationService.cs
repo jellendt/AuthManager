@@ -31,6 +31,7 @@ namespace AuthManager.Services.AuthenticationService
 
             if ((await this._userService.GetByEmail(registerRequest.Username)) != null)
                 throw new Exception("Dieser Username wurde bereits verwendet!");
+
             (string hash, string salt) = PasswordHasher.HashPassword(registerRequest.Password);
             RefreshToken refreshToken = GenerateRefreshToken();
 
@@ -58,6 +59,7 @@ namespace AuthManager.Services.AuthenticationService
             User? user = await this._userService.GetByEmail(loginRequest.EMail);
             if (user == null)
                 return null;
+
             if(PasswordHasher.VerifyPassword(loginRequest.Password, user.PasswordHash, user.Salt))
             {
                 RefreshToken newRefreshToken = GenerateRefreshToken();
