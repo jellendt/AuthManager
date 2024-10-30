@@ -14,7 +14,7 @@ namespace AuthManager_Test
         public void Delete_ThrowError_WhenUserNotExists()
         {
             //Arange
-            _userService.
+            //_userService.
 
             //Act
 
