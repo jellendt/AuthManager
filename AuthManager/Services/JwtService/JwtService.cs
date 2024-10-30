@@ -10,21 +10,16 @@ using System.Text;
 
 namespace AuthManager.Services.AuthenticationService
 {
-    public class JwtService : IJwtService
+    public class JwtService(
+        [FromServices] IConfiguration configuration) : IJwtService
     {
-        private readonly IConfiguration _configuration;
-
-        public JwtService(
-            [FromServices] IConfiguration configuration)
-        {
-            _configuration = configuration;
-        }
+        private readonly IConfiguration _configuration = configuration;
 
         public string GenerateJwtToken(User user)
         {
             // generate token that is valid for 15 minutes
             JwtSecurityTokenHandler tokenHandler = new();
-            byte[] key = Encoding.ASCII.GetBytes(this._configuration["Jwt:Key"]);
+            byte[] key = Encoding.ASCII.GetBytes(this._configuration["Jwt:Key"] ?? throw new Exception("Key not found"));
             SecurityTokenDescriptor tokenDescriptor = new()
             {
                 Subject = new ClaimsIdentity(new[] {
@@ -49,7 +44,7 @@ namespace AuthManager.Services.AuthenticationService
                 return null;
 
             JwtSecurityTokenHandler tokenHandler = new();
-            byte[] key = Encoding.ASCII.GetBytes(this._configuration["Jwt:Key"]);
+            byte[] key = Encoding.ASCII.GetBytes(this._configuration["Jwt:Key"] ?? throw new Exception("Key not found"));
             try
             {
                 tokenHandler.ValidateToken(token, new TokenValidationParameters

@@ -1,8 +1,7 @@
 ﻿namespace AuthManager.Models.Requests
 {
-    public class LoginRequest
+    public class UserChangeRequest
     {
         public required string EMail { get; set; }
-        public required string Password { get; set; }
     }
 }

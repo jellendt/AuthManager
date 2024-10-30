@@ -75,30 +75,8 @@ namespace AuthManager
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = configuration["Jwt:Issuer"],
                     ValidAudience = configuration["Jwt:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"] ?? throw new Exception("Key not found")))
                 };
-                //options.Events = new JwtBearerEvents
-                //{
-                //    OnMessageReceived = context =>
-                //    {
-                //        ILogger<Program> logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-                //        logger.LogInformation("Token extracted from cookie: {Token}", context.Token);
-                //        return Task.CompletedTask;
-                //    },
-                //    OnAuthenticationFailed = context =>
-                //    {
-                //        ILogger<Program> logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-                //        logger.LogError("Authentication failed: {Exception}", context.Exception);
-                //        return Task.CompletedTask;
-                //    },
-                //    OnTokenValidated = context =>
-                //    {
-                //        ILogger<Program> logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-                //        logger.LogInformation("Token validated successfully.");
-                //        return Task.CompletedTask;
-                //    }
-                //};
-
             });
 
             services.AddAuthorization();

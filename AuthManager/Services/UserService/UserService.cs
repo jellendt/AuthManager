@@ -1,5 +1,6 @@
 ﻿using AuthManager.Contexts;
 using AuthManager.Entities;
+using AuthManager.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,9 +40,7 @@ namespace AuthManager.Services.UserService
 
         public async Task Delete(Guid guid)
         {
-            User? user = await this.GetByGuid(guid);
-            if (user == null)
-                return;
+            User user = await this.GetByGuid(guid) ?? throw new UserNotFoundException();
             this._dbAuthContext.Remove(user);
             await this._dbAuthContext.SaveChangesAsync();
         }

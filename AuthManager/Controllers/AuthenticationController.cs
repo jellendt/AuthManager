@@ -53,26 +53,22 @@ namespace AuthManager.Controllers
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh()
         {
-            if(this.Request.Cookies.TryGetValue("refreshToken", out string? refreshToken))
-            {
-                (string jwtToken, RefreshToken refreshToken)? tokens = await this._authenticationService.Refresh(refreshToken);
-                if(tokens == null)
-                    return this.Unauthorized();
-                this.SetRefreshToken(tokens.Value.refreshToken);
-
-                return this.Ok(tokens.Value.jwtToken);
-            }
-            else
-            {
+            if (!this.Request.Cookies.TryGetValue("refreshToken", out string? refreshToken))
                 return this.Unauthorized();
-            }
+
+            (string jwtToken, RefreshToken refreshToken)? tokens = await this._authenticationService.Refresh(refreshToken);
+            if (tokens == null)
+                return this.Unauthorized();
+            this.SetRefreshToken(tokens.Value.refreshToken);
+
+            return this.Ok(tokens.Value.jwtToken);
         }
 
         [HttpGet("test")]
         [Authorize]
         public IActionResult Test()
         {
-            Guid? userGuid = this._jwtService.GetGuidIdFromClaims(HttpContext.User.Claims.ToList());
+            Guid? userGuid = this._jwtService.GetGuidIdFromClaims(this.HttpContext.User.Claims.ToList());
             //User user = _jwtService.GetGuidFromJwtToken()
             return this.Ok(userGuid);
             //return this.Ok(this._authenticationService.Ver());

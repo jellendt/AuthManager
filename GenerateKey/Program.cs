@@ -6,10 +6,10 @@ class Program
     static void Main()
     {
         // 16 bytes * 8 bits/byte = 128 bits
-        int keySize = 32; // 128 bits = 16 bytes
+        int keySize = 64; // 128 bits = 16 bytes
         byte[] key = new byte[keySize];
 
-        using (var rng = new RNGCryptoServiceProvider())
+        using (RNGCryptoServiceProvider rng = new())
         {
             rng.GetBytes(key);
         }

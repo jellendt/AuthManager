@@ -7,6 +7,15 @@
     "identityapp1": {
       "ignored": "true",
       "type": "identityapp"
+    },
+    "mssql2": {
+      "ignored": "true",
+      "type": "mssql",
+      "connectionId": "ConnectionStrings:LocalConnectionStrings"
+    },
+    "secrets1": {
+      "type": "secrets",
+      "dynamicId": null
     }
   }
 }

@@ -13,7 +13,7 @@ namespace AuthManager.Entities
         [JsonIgnore]
         public Guid Id { get; set; }
         public Guid UserId { get; set; }
-        public string Token { get; set; }
+        public string Token { get; set; } = string.Empty;
         public DateTime Expires { get; set; }
         public DateTime Created { get; set; }
         public DateTime? Revoked { get; set; }
