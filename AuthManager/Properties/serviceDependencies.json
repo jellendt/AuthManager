@@ -1,9 +1,5 @@
 {
   "dependencies": {
-    "mssql1": {
-      "ignored": "true",
-      "type": "mssql"
-    },
     "identityapp1": {
       "ignored": "true",
       "type": "identityapp"
@@ -15,6 +11,11 @@
     },
     "secrets1": {
       "type": "secrets",
+      "dynamicId": null
+    },
+    "mssql1": {
+      "type": "mssql",
+      "connectionId": "LocalExpressDb",
       "dynamicId": null
     }
   }

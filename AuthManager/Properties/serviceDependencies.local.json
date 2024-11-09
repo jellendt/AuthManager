@@ -3,6 +3,13 @@
     "secrets1": {
       "type": "secrets.user",
       "dynamicId": null
+    },
+    "mssql1": {
+      "serviceConnectorResourceId": "",
+      "secretStore": "LocalSecretsFile",
+      "type": "mssql.local",
+      "connectionId": "LocalExpressDb",
+      "dynamicId": null
     }
   }
 }

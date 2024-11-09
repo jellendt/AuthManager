@@ -25,6 +25,11 @@ namespace AuthManager.Contexts
                 .HasIndex(u => u.Username)
                 .IsUnique();
 
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.Credentials)
+                .WithOne()
+                .HasForeignKey(c => c.UserId);
+
         }
     }
 }

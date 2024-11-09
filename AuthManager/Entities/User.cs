@@ -18,6 +18,7 @@ namespace AuthManager.Entities
         public RoleEnum Role { get; set; }
         [NotMapped]
         public string? JwtToken { get; set; }
+        public List<FidoCredential> Credentials { get; set; }
         public List<RefreshToken> RefreshTokens { get; set; } = [];
         public RefreshToken? ActiveRefreshToken
         {
