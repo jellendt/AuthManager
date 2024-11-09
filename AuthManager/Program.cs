@@ -14,6 +14,9 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
+if (builder.Environment.IsDevelopment())
+    builder.Configuration.AddUserSecrets<Program>();
+
 Startup.AddAuthenticationServices(builder.Services, builder.Configuration);
 Startup.AddServices(builder.Services);
 Startup.AddMapper(builder.Services);

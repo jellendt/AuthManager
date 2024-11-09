@@ -14,14 +14,13 @@ namespace AuthManager
     {
         public static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
         {
-            string? connectionString = GetConnectionString("LocalConnectionStrings", configuration);
+            string? connectionString = GetConnectionString("LocalExpressDb", configuration);
             if (string.IsNullOrWhiteSpace(connectionString))
                 throw new Exception("Connection String is null or empty");
 
             services.AddDbContextPool<DbAuthContext>(options => options
-               .UseMySql(
-                   connectionString,
-                   new MySqlServerVersion(new Version(10, 6, 16))
+               .UseSqlServer(
+                   connectionString
                )
              );
             return services;
@@ -85,7 +84,7 @@ namespace AuthManager
         }
         private static string? GetConnectionString(string key, IConfiguration configuration)
         {
-            string? result = configuration.GetConnectionString(key);
+            string? result = configuration[key];
             if (!string.IsNullOrEmpty(result))
                 return result;
             return null;
