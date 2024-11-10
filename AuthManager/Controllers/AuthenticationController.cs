@@ -12,7 +12,7 @@ using System.Net;
 namespace AuthManager.Controllers
 {
     [ApiController]
-    [Route("authentication")]
+    [Route("v1/authentication")]
     public class AuthenticationController(
         [FromServices] IAuthenticationService authenticationService,
         [FromServices] IMapper mapper,
