@@ -50,6 +50,22 @@ namespace AuthManager.Controllers
             return this.Ok(authenticateResponse);
         }
 
+        [HttpPost("login/refresh")]
+        public async Task<IActionResult> LoginWithRefreshToken()
+        {
+            if (!this.Request.Cookies.TryGetValue("refreshToken", out string? refreshToken))
+                return this.Unauthorized();
+
+            Task<(User user, RefreshToken refreshToken)?> = await this._authenticationService.Login(loginRequest);
+            if (user == null || user.ActiveRefreshToken == null)
+                return this.Unauthorized();
+
+            this.SetRefreshToken(user.ActiveRefreshToken);
+
+            AuthenticateResponse authenticateResponse = this._mapper.Map<AuthenticateResponse>(user);
+            return this.Ok(authenticateResponse);
+        }
+
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh()
         {

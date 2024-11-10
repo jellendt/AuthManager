@@ -87,7 +87,7 @@ namespace AuthManager.Services.AuthenticationService
             if (oldRefreshToken == null)
                 return null;
 
-            User? user = await this._dbAuthContext.Users.FirstOrDefaultAsync(u => u.Id == oldRefreshToken.UserId);
+            User? user = await _userService.GetByGuid(oldRefreshToken.UserId);
 
             if (user == null)
                 return null;
@@ -120,6 +120,33 @@ namespace AuthManager.Services.AuthenticationService
             };
 
             return refreshToken;
+        }
+
+        public async Task<(User user, RefreshToken refreshToken)?> LoginWithRefresh(string userRefreshToken)
+        {
+            RefreshToken? oldRefreshToken = await this._dbAuthContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token.Equals(userRefreshToken) && rt.Revoked == null && DateTime.UtcNow < rt.Expires);
+
+            if (oldRefreshToken == null)
+                return null;
+
+            User? user = await _userService.GetByGuid(oldRefreshToken.UserId);
+
+            if (user == null)
+                return null;
+
+            string jwtToken = this._jwtService.GenerateJwtToken(user);
+            RefreshToken newRefreshToken = GenerateRefreshToken();
+
+            user.RefreshTokens.Add(newRefreshToken);
+            this._dbAuthContext.Add(newRefreshToken);
+
+            oldRefreshToken.ReplacedByToken = newRefreshToken.Id;
+            oldRefreshToken.Revoked = DateTime.UtcNow;
+            oldRefreshToken.ReasonRevoked = "revoked by system";
+
+            await this._dbAuthContext.SaveChangesAsync();
+
+            return (user, newRefreshToken);
         }
     }
 }

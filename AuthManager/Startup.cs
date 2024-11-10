@@ -30,6 +30,7 @@ namespace AuthManager
 
         public static IServiceCollection AddServices(this IServiceCollection services)
         {
+            services.AddCors();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IJwtService, JwtService>();
