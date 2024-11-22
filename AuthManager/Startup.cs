@@ -78,6 +78,22 @@ namespace AuthManager
                 };
             });
 
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", builder =>
+                    builder.AllowAnyOrigin() // oder `.WithOrigins("http://deine-domain.com")` für spezifische Ursprünge
+                           .AllowAnyMethod()
+                           .AllowAnyHeader());
+
+                options.AddPolicy("AllowSpecificOrigin", builder =>
+                {
+                    builder.WithOrigins("http://localhost:4200") // Angular-Client-URL
+                           .AllowAnyHeader()
+                           .AllowAnyMethod()
+                           .AllowCredentials(); // Erlaubt Cookies/Authentifizierung
+                });
+
+            });
             services.AddAuthorization();
 
             return services;
