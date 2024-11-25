@@ -5,8 +5,8 @@ namespace AuthManager.Services.AuthenticationService
 {
     public interface IAuthenticationService
     {
-        Task<User> Register(RegisterRequest registerRequest);
-        Task<User?> Login(LoginRequest loginRequest);
+        Task<(string jwtToken, RefreshToken refreshToken)?> Register(RegisterRequest registerRequest);
+        Task<(string jwtToken, RefreshToken refreshToken)?> Login(LoginRequest loginRequest);
         Task<(string jwtToken, RefreshToken refreshToken)?> Refresh(string userRefreshToken);
     }
 }

@@ -15,39 +15,35 @@ namespace AuthManager.Controllers
     [Route("v1/authentication")]
     public class AuthenticationController(
         [FromServices] IAuthenticationService authenticationService,
-        [FromServices] IMapper mapper,
         [FromServices] IJwtService jwtService
             ) : Controller
     {
         private readonly IAuthenticationService _authenticationService = authenticationService;
-        private readonly IMapper _mapper = mapper;
         private readonly IJwtService _jwtService = jwtService;
 
         [HttpPut("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
         {
-            User user = await this._authenticationService.Register(registerRequest);
-            if (user.ActiveRefreshToken == null)
+            (string jwtToken, RefreshToken refreshToken)? authCredentials = await this._authenticationService.Register(registerRequest);
+            if (authCredentials == null || authCredentials.Value.refreshToken == null)
                 return this.Unauthorized();
 
-            this.SetRefreshToken(user.ActiveRefreshToken);
+            this.SetRefreshToken(authCredentials.Value.refreshToken);
 
-            AuthenticateResponse authenticateResponse = this._mapper.Map<AuthenticateResponse>(user);
-            return this.Ok(authenticateResponse);
+            return this.Ok(authCredentials.Value.jwtToken);
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
         {
 
-            User? user = await this._authenticationService.Login(loginRequest);
-            if (user == null || user.ActiveRefreshToken == null)
+            (string jwtToken, RefreshToken refreshToken)? authCredentials = await this._authenticationService.Login(loginRequest);
+            if (authCredentials == null || authCredentials.Value.refreshToken == null)
                 return this.Unauthorized();
 
-            this.SetRefreshToken(user.ActiveRefreshToken);
+            this.SetRefreshToken(authCredentials.Value.refreshToken);
 
-            AuthenticateResponse authenticateResponse = this._mapper.Map<AuthenticateResponse>(user);
-            return this.Ok(authenticateResponse);
+            return this.Ok(authCredentials.Value.jwtToken);
         }
 
         [HttpPost("refresh")]

@@ -8,7 +8,7 @@ namespace AuthManager.Automapper
     {
         public MappingProfile() 
         {
-            _ = this.CreateMap<User, AuthenticateResponse>();
+            _ = this.CreateMap<User, UserResponse>();
         }
     }
 }

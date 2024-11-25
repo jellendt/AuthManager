@@ -21,7 +21,7 @@ namespace AuthManager.Services.AuthenticationService
         private readonly IJwtService _jwtService = jwtService;
         private readonly DbAuthContext _dbAuthContext = dbAuthContext;
 
-        public async Task<User> Register(RegisterRequest registerRequest)
+        public async Task<(string jwtToken, RefreshToken refreshToken)?> Register(RegisterRequest registerRequest)
         {
 
             if (!Matcher.EMail().IsMatch(registerRequest.EMail))
@@ -50,12 +50,10 @@ namespace AuthManager.Services.AuthenticationService
 
             User user = await this._userService.Add(newUser);
 
-            user.JwtToken = this._jwtService.GenerateJwtToken(user);
-
-            return user;
+            return (this._jwtService.GenerateJwtToken(user), refreshToken);
         }
 
-        public async Task<User?> Login(LoginRequest loginRequest)
+        public async Task<(string jwtToken, RefreshToken refreshToken)?> Login(LoginRequest loginRequest)
         {
             User? user = await this._userService.GetByEmail(loginRequest.EMail);
             if (user == null)
@@ -73,8 +71,7 @@ namespace AuthManager.Services.AuthenticationService
                 }
                 user.RefreshTokens.Add(newRefreshToken);
                 await this._dbAuthContext.SaveChangesAsync();
-                user.JwtToken = this._jwtService.GenerateJwtToken(user);
-                return user;
+                return (this._jwtService.GenerateJwtToken(user), newRefreshToken);
             }
 
             return null;
