@@ -4,7 +4,7 @@ using System.Text;
 
 namespace AuthManager.Services.AuthenticationService
 {
-    public class PasswordHasher
+    public static class PasswordHasher
     {
         private const int SaltSize = 16;
         private const int KeySize = 32;

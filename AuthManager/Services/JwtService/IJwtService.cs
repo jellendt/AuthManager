@@ -1,12 +1,12 @@
-﻿using AuthManager.Entities;
+﻿using AuthManager.DependecyInjection;
+using AuthManager.Entities;
 using System.Security.Claims;
 
-namespace AuthManager.Services.AuthenticationService
+namespace AuthManager.Services.JwtService
 {
-    public interface IJwtService
+    public interface IJwtService : IScopedDependency
     {
         string GenerateJwtToken(User user);
-        //Guid? GetGuidFromJwtToken(string token);
         Guid? GetGuidIdFromClaims(List<Claim> claims);
     }
 }

@@ -1,0 +1,22 @@
+services:
+  authmanager:
+    image: ${DOCKER_REGISTRY-}authmanager
+    build:
+      context: .
+      dockerfile: AuthManager/Dockerfile
+    depends_on:
+      - sqlserver
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=AuthManagerDb;User Id=sa;Password=DevPassword123!;TrustServerCertificate=True;"
+      Jwt__Issuer: "AuthManager"
+      Jwt__Audience: "AuthManagerClient"
+      Jwt__Key: "super-secret-development-key-123456"
+      Jwt__TokenLifetimeMinutes: 15
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "DevPassword123!"
+    ports:
+      - "1433:1433"

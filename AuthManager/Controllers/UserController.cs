@@ -2,7 +2,7 @@
 using AuthManager.Exceptions;
 using AuthManager.Models.Requests;
 using AuthManager.Models.Responses;
-using AuthManager.Services.AuthenticationService;
+using AuthManager.Services.JwtService;
 using AuthManager.Services.UserService;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;

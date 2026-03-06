@@ -1,5 +1,5 @@
-using AuthManager;
 using AuthManager.Contexts;
+using AuthManager.Extensions;
 using AuthManager.Services.AuthenticationService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -17,16 +17,20 @@ builder.Logging.AddDebug();
 if (builder.Environment.IsDevelopment())
     builder.Configuration.AddUserSecrets<Program>();
 
-Startup.AddAuthenticationServices(builder.Services, builder.Configuration);
-Startup.AddServices(builder.Services);
-Startup.AddMapper(builder.Services);
-Startup.AddDatabase(builder.Services, builder.Configuration);
+builder.Services.AddAuthenticationServices(builder.Configuration);
+builder.Services.AddService(builder.Configuration);
+builder.Services.AddMapper();
+builder.Services.AddDatabase(builder.Configuration);
 
 WebApplication app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<DbAuthContext>();
+        dbContext.Database.Migrate();
+    }
     app.UseSwagger();
     app.UseSwaggerUI();
     app.UseCors("AllowSpecificOrigin");
@@ -35,7 +39,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication(); // This must be before UseAuthorization
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

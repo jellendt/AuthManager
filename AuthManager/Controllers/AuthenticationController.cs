@@ -2,6 +2,7 @@
 using AuthManager.Models.Requests;
 using AuthManager.Models.Responses;
 using AuthManager.Services.AuthenticationService;
+using AuthManager.Services.JwtService;
 using AuthManager.Services.UserService;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -30,7 +31,7 @@ namespace AuthManager.Controllers
 
             this.SetRefreshToken(authCredentials.Value.refreshToken);
 
-            return this.Ok(authCredentials.Value.jwtToken);
+            return this.Ok(new TokenResponse() { Token = authCredentials.Value.jwtToken, ValidUntil = authCredentials.Value.refreshToken.Expires });
         }
 
         [HttpPost("login")]
@@ -43,7 +44,7 @@ namespace AuthManager.Controllers
 
             this.SetRefreshToken(authCredentials.Value.refreshToken);
 
-            return this.Ok(authCredentials.Value.jwtToken);
+            return this.Ok(new TokenResponse() { Token = authCredentials.Value.jwtToken, ValidUntil = authCredentials.Value.refreshToken.Expires });
         }
 
         [HttpPost("refresh")]
@@ -52,12 +53,12 @@ namespace AuthManager.Controllers
             if (!this.Request.Cookies.TryGetValue("refreshToken", out string? refreshToken))
                 return this.Unauthorized();
 
-            (string jwtToken, RefreshToken refreshToken)? tokens = await this._authenticationService.Refresh(refreshToken);
-            if (tokens == null)
+            (string jwtToken, RefreshToken refreshToken)? authCredentials = await this._authenticationService.Refresh(refreshToken);
+            if (authCredentials == null)
                 return this.Unauthorized();
-            this.SetRefreshToken(tokens.Value.refreshToken);
+            this.SetRefreshToken(authCredentials.Value.refreshToken);
 
-            return this.Ok(tokens.Value.jwtToken);
+            return this.Ok(new TokenResponse() { Token = authCredentials.Value.jwtToken, ValidUntil = authCredentials.Value.refreshToken.Expires });
         }
 
         [HttpGet("test")]
@@ -65,9 +66,7 @@ namespace AuthManager.Controllers
         public IActionResult Test()
         {
             Guid? userGuid = this._jwtService.GetGuidIdFromClaims(this.HttpContext.User.Claims.ToList());
-            //User user = _jwtService.GetGuidFromJwtToken()
             return this.Ok(userGuid);
-            //return this.Ok(this._authenticationService.Ver());
         }
 
         private void SetRefreshToken(RefreshToken refreshToken)

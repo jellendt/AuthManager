@@ -1,74 +1,27 @@
 ﻿using AuthManager.Entities;
+using AuthManager.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 
-namespace AuthManager.Services.AuthenticationService
+namespace AuthManager.Services.JwtService
 {
     public class JwtService(
-        [FromServices] IConfiguration configuration) : IJwtService
+        IOptions<JwtOptions> jwtOptions) : IJwtService
     {
-        private readonly IConfiguration _configuration = configuration;
+        private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
         public string GenerateJwtToken(User user)
         {
-            // generate token that is valid for 15 minutes
             JwtSecurityTokenHandler tokenHandler = new();
-            byte[] key = Encoding.ASCII.GetBytes(this._configuration["Jwt:Key"] ?? throw new Exception("Key not found"));
-            SecurityTokenDescriptor tokenDescriptor = new()
-            {
-                Subject = new ClaimsIdentity(new[] {
-                    new Claim(JwtRegisteredClaimNames.Name, user.Username),
-                    new Claim(JwtRegisteredClaimNames.Jti, user.Id.ToString()),
-                    new Claim(JwtRegisteredClaimNames.Email, user.EMail),
-                    new Claim("role", user.Role.ToString()) }),
-                Expires = DateTime.UtcNow.AddMinutes(15),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-                Issuer = this._configuration["Jwt:Issuer"],
-                Audience = this._configuration["Jwt:Audience"]
-                //ValidIssuer = configuration["Jwt:Issuer"],
-                //ValidAudience = configuration["Jwt:Audience"],
-            };
+            SecurityTokenDescriptor tokenDescriptor = BuildTokenDescriptor(user);
             SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
 
-        public Guid? GetGuidFromJwtToken(string token)
-        {
-            if (token == null)
-                return null;
-
-            JwtSecurityTokenHandler tokenHandler = new();
-            byte[] key = Encoding.ASCII.GetBytes(this._configuration["Jwt:Key"] ?? throw new Exception("Key not found"));
-            try
-            {
-                tokenHandler.ValidateToken(token, new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    // set clockskew to zero so tokens expire exactly at token expiration time (instead of 5 minutes later)
-                    ClockSkew = TimeSpan.Zero
-                }, out SecurityToken validatedToken);
-
-                JwtSecurityToken jwtToken = (JwtSecurityToken)validatedToken;
-                Guid userId = Guid.Parse(jwtToken.Claims.First(x => x.Type == JwtRegisteredClaimNames.Jti).Value);
-
-                // return user id from JWT token if validation successful
-                return userId;
-            }
-            catch
-            {
-                // return null if validation fails
-                return null;
-            }
-        }
         public Guid? GetGuidIdFromClaims(List<Claim> claims)
         {
             if (Guid.TryParse(claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value, out Guid userGuid))
@@ -76,6 +29,23 @@ namespace AuthManager.Services.AuthenticationService
                 return userGuid;
             }
             return null;
+        }
+
+        private SecurityTokenDescriptor BuildTokenDescriptor(User user)
+        {
+            byte[] key = Encoding.ASCII.GetBytes(_jwtOptions.Key);
+            return new()
+            {
+                Subject = new ClaimsIdentity([
+                    new Claim(JwtRegisteredClaimNames.Name, user.Username),
+                    new Claim(JwtRegisteredClaimNames.Jti, user.Id.ToString()),
+                    new Claim(JwtRegisteredClaimNames.Email, user.EMail),
+                    new Claim("role", user.Role.ToString()) ]),
+                Expires = DateTime.UtcNow.AddMinutes(15),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                Issuer = _jwtOptions.Issuer,
+                Audience = _jwtOptions.Audience
+            };
         }
     }
 }

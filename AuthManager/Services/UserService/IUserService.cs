@@ -1,8 +1,9 @@
-﻿using AuthManager.Entities;
+﻿using AuthManager.DependecyInjection;
+using AuthManager.Entities;
 
 namespace AuthManager.Services.UserService
 {
-    public interface IUserService
+    public interface IUserService : IScopedDependency
     {
         Task<User?> GetByGuid(Guid id);
         Task<User?> GetByEmail(string eMail);

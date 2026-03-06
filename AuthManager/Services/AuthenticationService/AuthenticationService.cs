@@ -1,7 +1,7 @@
 ﻿using AuthManager.Contexts;
 using AuthManager.Entities;
 using AuthManager.Models.Requests;
-using AuthManager.Regexes;
+using AuthManager.Services.JwtService;
 using AuthManager.Services.UserService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -24,7 +24,7 @@ namespace AuthManager.Services.AuthenticationService
         public async Task<(string jwtToken, RefreshToken refreshToken)?> Register(RegisterRequest registerRequest)
         {
 
-            if (!Matcher.EMail().IsMatch(registerRequest.EMail))
+            if (!EMail().IsMatch(registerRequest.EMail))
                 throw new Exception("Bitte geb eine Valide E-Mail an!");
 
             if((await this._userService.GetByEmail(registerRequest.EMail)) != null)
@@ -118,5 +118,8 @@ namespace AuthManager.Services.AuthenticationService
 
             return refreshToken;
         }
+
+        [GeneratedRegex(@"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")]
+        public static partial Regex EMail();
     }
 }
