@@ -15,11 +15,11 @@ namespace AuthManager.Controllers
     [ApiController]
     [Route("v1/authentication")]
     public class AuthenticationController(
-        [FromServices] IAuthenticationService authenticationService,
+        [FromServices] ITokenService authenticationService,
         [FromServices] IJwtService jwtService
             ) : Controller
     {
-        private readonly IAuthenticationService _authenticationService = authenticationService;
+        private readonly ITokenService _authenticationService = authenticationService;
         private readonly IJwtService _jwtService = jwtService;
 
         [HttpPut("register")]

@@ -37,10 +37,10 @@ namespace AuthManager.Services.JwtService
             return new()
             {
                 Subject = new ClaimsIdentity([
-                    new Claim(JwtRegisteredClaimNames.Name, user.Username),
-                    new Claim(JwtRegisteredClaimNames.Jti, user.Id.ToString()),
-                    new Claim(JwtRegisteredClaimNames.Email, user.EMail),
-                    new Claim("role", user.Role.ToString()) ]),
+                        new Claim(JwtRegisteredClaimNames.Name, user.Username),
+                        new Claim(JwtRegisteredClaimNames.Jti, user.Id.ToString()),
+                        new Claim(JwtRegisteredClaimNames.Email, user.EMail),
+                    ]),
                 Expires = DateTime.UtcNow.AddMinutes(15),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                 Issuer = _jwtOptions.Issuer,

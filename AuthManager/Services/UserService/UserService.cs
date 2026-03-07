@@ -10,39 +10,48 @@ namespace AuthManager.Services.UserService
             [FromServices] DbAuthContext dbAuthContext
         ): IUserService
     {
-        private readonly DbAuthContext _dbAuthContext = dbAuthContext;
         public async Task<User?> GetByGuid(Guid id)
         {
-            return await this._dbAuthContext.Users
+            return await dbAuthContext.Users
                 .Include(u => u.RefreshTokens)
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
 
         public async Task<User?> GetByEmail(string Email)
         {
-            return await this._dbAuthContext.Users
+            return await dbAuthContext.Users
                 .Include(u => u.RefreshTokens)
                 .FirstOrDefaultAsync(u => u.EMail.Equals(Email));
         }
         public async Task<User> Add(User user)
         {
-            await this._dbAuthContext.AddAsync(user);
-            await this._dbAuthContext.SaveChangesAsync();
+            await dbAuthContext.AddAsync(user);
+            await dbAuthContext.SaveChangesAsync();
             return user;
         }
 
         public async Task<User> Update(User user)
         {
-            this._dbAuthContext.Update(user);
-            await this._dbAuthContext.SaveChangesAsync();
+            dbAuthContext.Update(user);
+            await dbAuthContext.SaveChangesAsync();
             return user;
         }
 
         public async Task Delete(Guid guid)
         {
-            User user = await this.GetByGuid(guid) ?? throw new UserNotFoundException();
-            this._dbAuthContext.Remove(user);
-            await this._dbAuthContext.SaveChangesAsync();
+            User user = await GetByGuid(guid) ?? throw new UserNotFoundException();
+            dbAuthContext.Remove(user);
+            await dbAuthContext.SaveChangesAsync();
+        }
+
+        public Task<bool> CheckEmailExists(string email)
+        {
+            return dbAuthContext.Users.AnyAsync(u => u.EMail == email);
+        }
+
+        public Task<bool> CheckUsernameExists(string username)
+        {
+            return dbAuthContext.Users.AnyAsync(u => u.Username == username);
         }
     }
 }

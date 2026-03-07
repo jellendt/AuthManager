@@ -12,19 +12,9 @@ namespace AuthManager.Entities
         [Key]
         public Guid Id { get; set; }
         public required string Username { get; set; }
-        public required string PasswordHash { get; set; }
-        public required string Salt { get; set; }
+        public string PasswordHash { get; set; }
         public required string EMail { get; set; }
-        public RoleEnum Role { get; set; }
-        [NotMapped]
-        public string? JwtToken { get; set; }
         public List<RefreshToken> RefreshTokens { get; set; } = [];
-        public RefreshToken? ActiveRefreshToken
-        {
-            get
-            {
-                return this.RefreshTokens.FirstOrDefault(rf => !rf.IsExpired);
-            }
-        } 
+        public RefreshToken? ActiveRefreshToken => RefreshTokens.FirstOrDefault(rf => !rf.IsExpired);
     }
 }

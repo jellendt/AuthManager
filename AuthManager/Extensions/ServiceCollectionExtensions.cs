@@ -1,10 +1,12 @@
 using AuthManager.Automapper;
 using AuthManager.Contexts;
 using AuthManager.DependecyInjection;
+using AuthManager.Entities;
 using AuthManager.Models;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Cors.Infrastructure;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Reflection;
@@ -46,7 +48,7 @@ namespace AuthManager.Extensions
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
 
-            
+            services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
             services.RegisterAssemblyByConvention(Assembly.GetExecutingAssembly());
             return services;
