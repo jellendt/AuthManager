@@ -1,7 +1,6 @@
 ﻿using AuthManager.Contexts;
 using AuthManager.Entities;
 using AuthManager.Exceptions;
-using AuthManager.Exceptions.Login;
 using AuthManager.Exceptions.Registration;
 using AuthManager.Models.Requests;
 using AuthManager.Services.JwtService;

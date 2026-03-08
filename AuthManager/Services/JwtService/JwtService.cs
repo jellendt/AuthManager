@@ -1,6 +1,5 @@
 ﻿using AuthManager.Entities;
 using AuthManager.Models;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -20,15 +19,6 @@ namespace AuthManager.Services.JwtService
             SecurityTokenDescriptor tokenDescriptor = BuildTokenDescriptor(user);
             SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
-        }
-
-        public Guid? GetGuidIdFromClaims(List<Claim> claims)
-        {
-            if (Guid.TryParse(claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value, out Guid userGuid))
-            {
-                return userGuid;
-            }
-            return null;
         }
 
         private SecurityTokenDescriptor BuildTokenDescriptor(User user)

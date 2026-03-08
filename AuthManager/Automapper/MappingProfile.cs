@@ -6,7 +6,7 @@ namespace AuthManager.Automapper
 {
     public class MappingProfile : Profile
     {
-        public MappingProfile() 
+        public MappingProfile()
         {
             _ = this.CreateMap<User, UserResponse>();
         }

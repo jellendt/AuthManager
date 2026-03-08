@@ -1,6 +1,5 @@
 ﻿using AuthManager.Contexts;
 using AuthManager.Entities;
-using AuthManager.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,7 +7,7 @@ namespace AuthManager.Services.UserService
 {
     public class UserService(
             [FromServices] DbAuthContext dbAuthContext
-        ): IUserService
+        ) : IUserService
     {
         public async Task<User?> GetByGuid(Guid id)
         {

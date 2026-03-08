@@ -19,7 +19,7 @@ namespace AuthManager.Entities
         public DateTime? Revoked { get; set; }
         public Guid ReplacedByToken { get; set; }
         public string? ReasonRevoked { get; set; }
-        public bool IsExpired 
+        public bool IsExpired
         {
             get
             {
