@@ -3,12 +3,8 @@ using AuthManager.Models.Requests;
 using AuthManager.Models.Responses;
 using AuthManager.Services.AuthenticationService;
 using AuthManager.Services.JwtService;
-using AuthManager.Services.UserService;
-using AutoMapper;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
 
 namespace AuthManager.Controllers
 {
@@ -25,26 +21,21 @@ namespace AuthManager.Controllers
         [HttpPut("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
         {
-            (string jwtToken, RefreshToken refreshToken)? authCredentials = await this._authenticationService.Register(registerRequest);
-            if (authCredentials == null || authCredentials.Value.refreshToken == null)
-                return this.Unauthorized();
-
-            this.SetRefreshToken(authCredentials.Value.refreshToken);
-
-            return this.Ok(new TokenResponse() { Token = authCredentials.Value.jwtToken, ValidUntil = authCredentials.Value.refreshToken.Expires });
+            (string jwtToken, RefreshToken refreshToken) authCredentials = await this._authenticationService.Register(registerRequest);
+            this.SetRefreshToken(authCredentials.refreshToken);
+            return this.Ok(ConvertToTokenResponse(authCredentials));
         }
+
+        
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
         {
 
-            (string jwtToken, RefreshToken refreshToken)? authCredentials = await this._authenticationService.Login(loginRequest);
-            if (authCredentials == null || authCredentials.Value.refreshToken == null)
-                return this.Unauthorized();
+            (string jwtToken, RefreshToken refreshToken) authCredentials = await this._authenticationService.Login(loginRequest);
+            this.SetRefreshToken(authCredentials.refreshToken);
 
-            this.SetRefreshToken(authCredentials.Value.refreshToken);
-
-            return this.Ok(new TokenResponse() { Token = authCredentials.Value.jwtToken, ValidUntil = authCredentials.Value.refreshToken.Expires });
+            return this.Ok(ConvertToTokenResponse(authCredentials));
         }
 
         [HttpPost("refresh")]
@@ -53,19 +44,17 @@ namespace AuthManager.Controllers
             if (!this.Request.Cookies.TryGetValue("refreshToken", out string? refreshToken))
                 return this.Unauthorized();
 
-            (string jwtToken, RefreshToken refreshToken)? authCredentials = await this._authenticationService.Refresh(refreshToken);
-            if (authCredentials == null)
-                return this.Unauthorized();
-            this.SetRefreshToken(authCredentials.Value.refreshToken);
+            (string jwtToken, RefreshToken refreshToken) authCredentials = await this._authenticationService.Refresh(refreshToken);
+            this.SetRefreshToken(authCredentials.refreshToken);
 
-            return this.Ok(new TokenResponse() { Token = authCredentials.Value.jwtToken, ValidUntil = authCredentials.Value.refreshToken.Expires });
+            return this.Ok(ConvertToTokenResponse(authCredentials));
         }
 
         [HttpGet("test")]
         [Authorize]
         public IActionResult Test()
         {
-            Guid? userGuid = this._jwtService.GetGuidIdFromClaims(this.HttpContext.User.Claims.ToList());
+            Guid? userGuid = this._jwtService.GetGuidIdFromClaims([.. this.HttpContext.User.Claims]);
             return this.Ok(userGuid);
         }
 
@@ -80,6 +69,11 @@ namespace AuthManager.Controllers
                             Secure = true,
                             SameSite = SameSiteMode.None
                         });
+        }
+
+        private static TokenResponse ConvertToTokenResponse((string jwtToken, RefreshToken refreshToken) authCredentials)
+        {
+            return new TokenResponse() { Token = authCredentials.jwtToken, ValidUntil = authCredentials.refreshToken.Expires };
         }
 
     }

@@ -43,7 +43,7 @@ namespace AuthManager.Controllers
             if(userGuid == null)
                 return this.Unauthorized();
 
-            User user = await _userService.GetByGuid((Guid)userGuid) ?? throw new UserNotFoundException();
+            User user = await _userService.GetByGuid((Guid)userGuid);
 
             user.EMail = userChangeRequest.EMail;
 

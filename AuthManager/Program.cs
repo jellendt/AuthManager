@@ -1,48 +1,52 @@
 using AuthManager.Contexts;
 using AuthManager.Extensions;
-using AuthManager.Services.AuthenticationService;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using AuthManager.Middlewares;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using System.Text.Json.Serialization;
 
-WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-builder.Logging.AddDebug();
-
-if (builder.Environment.IsDevelopment())
-    builder.Configuration.AddUserSecrets<Program>();
-
-builder.Services.AddAuthenticationServices(builder.Configuration);
-builder.Services.AddService(builder.Configuration);
-builder.Services.AddMapper();
-builder.Services.AddDatabase(builder.Configuration);
-
-WebApplication app = builder.Build();
-
-if (app.Environment.IsDevelopment())
+namespace AuthManager
 {
-    using (var scope = app.Services.CreateScope())
+    public class Program
     {
-        var dbContext = scope.ServiceProvider.GetRequiredService<DbAuthContext>();
-        dbContext.Database.Migrate();
+        private static void Main(string[] args)
+        {
+            WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+            if (builder.Environment.IsDevelopment())
+                builder.Configuration.AddUserSecrets<Program>();
+
+            builder.Services.AddAuthenticationServices(builder.Configuration);
+            builder.Services.AddService(builder.Configuration);
+            builder.Services.AddMapper();
+            builder.Services.AddDatabase(builder.Configuration);
+
+            WebApplication app = builder.Build();
+
+            if (app.Environment.IsDevelopment())
+            {
+                ApplyDatabaseMigrations(app);
+                app.UseSwagger();
+                app.UseSwaggerUI();
+                app.UseCors("AllowSpecificOrigin");
+            }
+
+            app.UseMiddleware<ExceptionMiddleware>();
+
+            app.UseHttpsRedirection();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.MapControllers();
+
+
+            app.Run();
+        }
+
+        private static void ApplyDatabaseMigrations(WebApplication app)
+        {
+            using var scope = app.Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<DbAuthContext>();
+            dbContext.Database.Migrate();
+        }
     }
-    app.UseSwagger();
-    app.UseSwaggerUI();
-    app.UseCors("AllowSpecificOrigin");
 }
-
-
-app.UseHttpsRedirection();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-
-
-app.Run();

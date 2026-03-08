@@ -39,7 +39,7 @@ namespace AuthManager.Services.UserService
 
         public async Task Delete(Guid guid)
         {
-            User user = await GetByGuid(guid) ?? throw new UserNotFoundException();
+            User user = await GetByGuid(guid);
             dbAuthContext.Remove(user);
             await dbAuthContext.SaveChangesAsync();
         }
